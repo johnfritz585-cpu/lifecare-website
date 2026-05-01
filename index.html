@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LifeCare - Student Health & Life Management</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">LifeCare</div>
+            <div class="nav-menu" id="navMenu">
+                <a href="#home" class="nav-link">Home</a>
+                <a href="#features" class="nav-link">Features</a>
+                <a href="#about" class="nav-link">About</a>
+                <a href="#contact" class="nav-link">Contact</a>
+            </div>
+            <div class="hamburger" id="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <h1>Stay Healthy. Stay Organized. Stay In Control.</h1>
+            <p>LifeCare is your personal health & life management companion designed for busy students.</p>
+            <button class="cta-btn" onclick="scrollToSection('contact')">Get Started</button>
+        </div>
+        <div class="hero-image">
+            <div class="phone-mockup">
+                <div class="phone-screen">
+                    <div class="app-icon">📱</div>
+                    <div class="app-text">LifeCare App</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Problems Section -->
+    <section class="problems">
+        <div class="container">
+            <h2>The Struggles Are Real</h2>
+            <p class="section-subtitle">Students face multiple challenges managing their health, time, and life</p>
+            <div class="problems-grid">
+                <div class="problem-card">
+                    <div class="problem-icon">🏥</div>
+                    <h3>Health Confusion</h3>
+                    <p>Can't access medical history, forget doctor's instructions, no way to track health progress</p>
+                </div>
+                <div class="problem-card">
+                    <div class="problem-icon">⏰</div>
+                    <h3>Time Management</h3>
+                    <p>Poor organization, juggling school and personal responsibilities without structure</p>
+                </div>
+                <div class="problem-card">
+                    <div class="problem-icon">💰</div>
+                    <h3>Financial Stress</h3>
+                    <p>Difficulty budgeting, overspending, no tracking of daily expenses</p>
+                </div>
+                <div class="problem-card">
+                    <div class="problem-icon">😰</div>
+                    <h3>Duty Anxiety</h3>
+                    <p>Nursing students fear mistakes, forget materials, lack preparation and confidence</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Solution Section -->
+    <section class="solution">
+        <div class="container">
+            <h2>Meet LifeCare</h2>
+            <p class="section-subtitle">A smart companion app that solves all your management challenges</p>
+            <div class="solution-content">
+                <div class="solution-text">
+                    <h3>The Common Problem</h3>
+                    <p><strong>"Lack of personal management, organization, and support system"</strong></p>
+                    <p>Students struggle to manage their health, responsibilities, and daily life effectively.</p>
+                    <h3>Our Solution</h3>
+                    <p>LifeCare combines 4 powerful modules into one intelligent app to help you take control of your life.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <h2>Our Core Features</h2>
+            <p class="section-subtitle">4 powerful modules designed for student success</p>
+            
+            <div class="features-grid">
+                <!-- Feature 1 -->
+                <div class="feature-card">
+                    <div class="feature-icon">💊</div>
+                    <h3>Health Management</h3>
+                    <p>Digital health profile with allergies, medications, and medical history. Track symptoms, habits, and get nutrition guidance.</p>
+                    <ul class="feature-list">
+                        <li>✓ Medical records storage</li>
+                        <li>✓ Doctor instruction tracker</li>
+                        <li>✓ Health progress monitoring</li>
+                        <li>✓ Food diary & nutrition</li>
+                    </ul>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3>Duty Preparation</h3>
+                    <p>Nursing students: Never be unprepared again. Duty checklists, area-based reviews, pre-duty reminders, and confidence tips.</p>
+                    <ul class="feature-list">
+                        <li>✓ Duty checklists</li>
+                        <li>✓ Area-based quick review</li>
+                        <li>✓ Pre-duty reminders</li>
+                        <li>✓ Confidence notes</li>
+                    </ul>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="feature-card">
+                    <div class="feature-icon">📅</div>
+                    <h3>Task & Time Management</h3>
+                    <p>Organize your school and personal life. Daily planner, to-do lists, smart reminders, and priority tagging.</p>
+                    <ul class="feature-list">
+                        <li>✓ Daily planner</li>
+                        <li>✓ To-do lists</li>
+                        <li>✓ Smart reminders</li>
+                        <li>✓ Priority tagging</li>
+                    </ul>
+                </div>
+
+                <!-- Feature 4 -->
+                <div class="feature-card">
+                    <div class="feature-icon">💳</div>
+                    <h3>Financial Tracker</h3>
+                    <p>Take control of your money. Log expenses, set budget limits, receive alerts, and get weekly/monthly summaries.</p>
+                    <ul class="feature-list">
+                        <li>✓ Expense logging</li>
+                        <li>✓ Budget alerts</li>
+                        <li>✓ Weekly summaries</li>
+                        <li>✓ Spending analytics</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why LifeCare Section -->
+    <section class="why-lifecare">
+        <div class="container">
+            <h2>Why Choose LifeCare?</h2>
+            <div class="why-grid">
+                <div class="why-card">
+                    <h3>🎓 Built by Students</h3>
+                    <p>Created by nursing students who understand your real struggles and challenges.</p>
+                </div>
+                <div class="why-card">
+                    <h3>🛡️ Patient Safety First</h3>
+                    <p>Designed with duty preparation at the core to ensure you're always ready and safe.</p>
+                </div>
+                <div class="why-card">
+                    <h3>📱 All-in-One Platform</h3>
+                    <p>No need for multiple apps. Everything you need in one smart companion.</p>
+                </div>
+                <div class="why-card">
+                    <h3>⚡ Easy to Use</h3>
+                    <p>Simple, intuitive interface designed for busy students with no time to waste.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+        <div class="container">
+            <h2>About LifeCare</h2>
+            <div class="about-content">
+                <h3>Our Mission</h3>
+                <p>To empower students—especially nursing students—to take control of their health, time, finances, and responsibilities through intelligent, easy-to-use technology.</p>
+                
+                <h3>Our Vision</h3>
+                <p>A world where every student can balance their academic, professional, and personal life without stress and anxiety.</p>
+
+                <h3>The Story</h3>
+                <p>LifeCare was born from real struggles. Nursing students juggle clinical duties, classes, personal health, finances, and life management all at once. The anxiety of making mistakes in the hospital, forgetting important medical information, missing tasks, and overspending creates constant stress. We built LifeCare to solve this—one student at a time.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact">
+        <div class="container">
+            <h2>Get Started with LifeCare</h2>
+            <p class="section-subtitle">Join hundreds of students managing their life better</p>
+            
+            <form class="contact-form" id="contactForm">
+                <div class="form-group">
+                    <input type="text" placeholder="Your Name" required>
+                </div>
+                <div class="form-group">
+                    <input type="email" placeholder="Your Email" required>
+                </div>
+                <div class="form-group">
+                    <input type="tel" placeholder="Phone Number (Optional)">
+                </div>
+                <div class="form-group">
+                    <select required>
+                        <option value="">Select Your Role</option>
+                        <option value="nursing-student">Nursing Student</option>
+                        <option value="student">Other Student</option>
+                        <option value="parent">Parent</option>
+                        <option value="educator">Educator</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <textarea placeholder="Tell us about your biggest challenge..." rows="5" required></textarea>
+                </div>
+                <button type="submit" class="submit-btn">Send Message</button>
+            </form>
+
+            <div class="contact-info">
+                <h3>Other Ways to Reach Us</h3>
+                <p>📧 Email: info@lifecare.com</p>
+                <p>📱 Phone: +1 (555) 123-4567</p>
+                <p>📍 Location: Manila, Philippines</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 LifeCare. All rights reserved. | Designed for Student Success</p>
+            <div class="social-links">
+                <a href="#">Facebook</a>
+                <a href="#">Twitter</a>
+                <a href="#">Instagram</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
