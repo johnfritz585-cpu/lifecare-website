@@ -1,919 +1,516 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+// ===== USER DATA STORAGE =====
+let currentUser = null;
+let users = JSON.parse(localStorage.getItem('lifecareUsers')) || {};
+let userActivities = JSON.parse(localStorage.getItem('lifecareActivities')) || {};
+
+// ===== MODAL FUNCTIONS =====
+function openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    modal.classList.add('show');
 }
 
-:root {
-    --primary: #FF6B9D;
-    --secondary: #C44569;
-    --accent: #FFA502;
-    --dark: #1a1a1a;
-    --light: #f5f5f5;
-    --white: #ffffff;
-    --text: #333333;
-    --success: #4CAF50;
-    --error: #f44336;
-    --warning: #ff9800;
-    --info: #2196F3;
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    modal.classList.remove('show');
 }
 
-html {
-    scroll-behavior: smooth;
-}
-
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    line-height: 1.6;
-    color: var(--text);
-    overflow-x: hidden;
-}
-
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-}
-
-/* ===== NOTIFICATIONS ===== */
-.notification-container {
-    position: fixed;
-    top: 80px;
-    right: 20px;
-    z-index: 10000;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.notification {
-    background: white;
-    padding: 15px 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    border-left: 5px solid;
-    animation: slideInRight 0.3s ease;
-    min-width: 300px;
-}
-
-.notification.success {
-    border-color: var(--success);
-}
-
-.notification.error {
-    border-color: var(--error);
-}
-
-.notification.warning {
-    border-color: var(--warning);
-}
-
-.notification.info {
-    border-color: var(--info);
-}
-
-.notification-title {
-    font-weight: bold;
-    margin-bottom: 5px;
-}
-
-@keyframes slideInRight {
-    from {
-        transform: translateX(400px);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
+function switchTab(tabName) {
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Remove active from all buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Show selected tab
+    if (tabName === 'login') {
+        document.getElementById('loginForm').classList.add('active');
+        document.querySelectorAll('.tab-btn')[0].classList.add('active');
+    } else {
+        document.getElementById('signupForm').classList.add('active');
+        document.querySelectorAll('.tab-btn')[1].classList.add('active');
     }
 }
 
-/* ===== MODAL ===== */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 5000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    animation: fadeIn 0.3s ease;
+// ===== NOTIFICATION SYSTEM =====
+function showNotification(title, message, type = 'info') {
+    const container = document.getElementById('notificationContainer');
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.innerHTML = `
+        <div class="notification-title">${title}</div>
+        <div>${message}</div>
+    `;
+    
+    container.appendChild(notification);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        notification.style.animation = 'slideInRight 0.3s ease reverse';
+        setTimeout(() => notification.remove(), 300);
+    }, 5000);
 }
 
-.modal.show {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.modal-content {
-    background-color: var(--white);
-    padding: 30px;
-    border-radius: 15px;
-    width: 90%;
-    max-width: 450px;
-    position: relative;
-    animation: slideUp 0.3s ease;
-}
-
-.close {
-    color: #aaa;
-    position: absolute;
-    right: 20px;
-    top: 15px;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: color 0.3s ease;
-}
-
-.close:hover {
-    color: var(--primary);
-}
-
-.modal-tabs {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-    border-bottom: 2px solid var(--light);
-}
-
-.tab-btn {
-    background: none;
-    border: none;
-    padding: 10px 20px;
-    cursor: pointer;
-    font-size: 1rem;
-    font-weight: 500;
-    color: #999;
-    border-bottom: 3px solid transparent;
-    transition: all 0.3s ease;
-}
-
-.tab-btn.active {
-    color: var(--primary);
-    border-bottom-color: var(--primary);
-}
-
-.tab-content {
-    display: none;
-}
-
-.tab-content.active {
-    display: block;
-    animation: fadeIn 0.3s ease;
-}
-
-@keyframes slideUp {
-    from {
-        transform: translateY(50px);
-        opacity: 0;
+// ===== LOGIN/SIGNUP =====
+document.getElementById('loginForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    
+    // Simple validation - in real app, this would verify against backend
+    if (email && password) {
+        // Create or retrieve user
+        if (!users[email]) {
+            users[email] = {
+                email: email,
+                password: password,
+                name: email.split('@')[0],
+                role: 'student',
+                joinDate: new Date().toLocaleDateString(),
+                allergies: '',
+                medications: ''
+            };
+        }
+        
+        // Save user
+        localStorage.setItem('lifecareUsers', JSON.stringify(users));
+        
+        // Login user
+        currentUser = users[email];
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
+        
+        closeModal('loginModal');
+        showDashboard();
+        showNotification('Welcome!', `Logged in as ${currentUser.name}`, 'success');
+        
+        // Clear form
+        document.getElementById('loginForm').reset();
     }
-    to {
-        transform: translateY(0);
-        opacity: 1;
+});
+
+document.getElementById('signupForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    const name = document.getElementById('signupName').value;
+    const email = document.getElementById('signupEmail').value;
+    const role = document.getElementById('signupRole').value;
+    const password = document.getElementById('signupPassword').value;
+    
+    if (users[email]) {
+        showNotification('Error', 'Email already registered!', 'error');
+        return;
     }
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
+    
+    users[email] = {
+        email: email,
+        password: password,
+        name: name,
+        role: role,
+        joinDate: new Date().toLocaleDateString(),
+        allergies: '',
+        medications: ''
+    };
+    
+    localStorage.setItem('lifecareUsers', JSON.stringify(users));
+    
+    currentUser = users[email];
+    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    
+    // Initialize user activities
+    if (!userActivities[email]) {
+        userActivities[email] = {
+            health: [],
+            tasks: [],
+            expenses: [],
+            duty: []
+        };
+        localStorage.setItem('lifecareActivities', JSON.stringify(userActivities));
     }
-    to {
-        opacity: 1;
+    
+    closeModal('loginModal');
+    showDashboard();
+    showNotification('Account Created!', `Welcome ${name}!`, 'success');
+    
+    // Clear form
+    document.getElementById('signupForm').reset();
+});
+
+// ===== SHOW/HIDE DASHBOARD =====
+function showDashboard() {
+    document.getElementById('landingPage').classList.add('hidden');
+    document.getElementById('dashboard').classList.remove('hidden');
+    
+    // Load user profile
+    updateProfileDisplay();
+    
+    // Initialize activities if needed
+    const email = currentUser.email;
+    if (!userActivities[email]) {
+        userActivities[email] = {
+            health: [],
+            tasks: [],
+            expenses: [],
+            duty: []
+        };
     }
-}
-
-/* ===== FORMS ===== */
-.form-group {
-    margin-bottom: 15px;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-    width: 100%;
-    padding: 12px 15px;
-    border: 2px solid var(--light);
-    border-radius: 8px;
-    font-size: 1rem;
-    font-family: inherit;
-    transition: all 0.3s ease;
-}
-
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 10px rgba(255, 107, 157, 0.2);
-}
-
-.submit-btn,
-.action-btn {
-    width: 100%;
-    padding: 12px;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 1rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.submit-btn:hover,
-.action-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 20px rgba(255, 107, 157, 0.3);
-}
-
-.form-note {
-    text-align: center;
-    font-size: 0.9rem;
-    color: #999;
-    margin-top: 10px;
-}
-
-/* ===== NAVIGATION ===== */
-.navbar {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-    padding: 1rem 0;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.nav-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.nav-logo {
-    font-size: 1.8rem;
-    font-weight: bold;
-    color: var(--white);
-    text-transform: uppercase;
-    letter-spacing: 2px;
-}
-
-.nav-menu {
-    display: flex;
-    gap: 2rem;
-    list-style: none;
-    align-items: center;
-}
-
-.nav-link {
-    color: var(--white);
-    text-decoration: none;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-
-.nav-link:hover {
-    opacity: 0.8;
-}
-
-.login-btn {
-    background: var(--accent);
-    color: var(--white);
-    border: none;
-    padding: 10px 25px;
-    border-radius: 25px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: all 0.3s ease;
-}
-
-.login-btn:hover {
-    transform: scale(1.05);
-}
-
-.hamburger {
-    display: none;
-    flex-direction: column;
-    cursor: pointer;
-    gap: 5px;
-}
-
-.hamburger span {
-    width: 25px;
-    height: 3px;
-    background: var(--white);
-    border-radius: 3px;
-    transition: all 0.3s ease;
-}
-
-/* ===== LANDING PAGE ===== */
-.landing-page {
-    display: block;
-}
-
-.landing-page.hidden {
-    display: none;
-}
-
-/* Hero Section */
-.hero {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-    color: var(--white);
-    padding: 100px 20px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 40px;
-    align-items: center;
-    min-height: 90vh;
-}
-
-.hero-content h1 {
-    font-size: 3.5rem;
-    margin-bottom: 20px;
-    line-height: 1.2;
-    animation: slideInLeft 0.8s ease;
-}
-
-.hero-content p {
-    font-size: 1.2rem;
-    margin-bottom: 30px;
-    opacity: 0.95;
-}
-
-.cta-btn {
-    background: var(--accent);
-    color: var(--white);
-    border: none;
-    padding: 15px 40px;
-    font-size: 1.1rem;
-    border-radius: 50px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: all 0.3s ease;
-}
-
-.cta-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-}
-
-.phone-mockup {
-    display: flex;
-    justify-content: center;
-}
-
-.phone-screen {
-    width: 250px;
-    height: 500px;
-    background: var(--white);
-    border-radius: 40px;
-    border: 12px solid var(--dark);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 20px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-}
-
-.app-icon {
-    font-size: 4rem;
-}
-
-.app-text {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: var(--primary);
-}
-
-/* Problems Section */
-.problems {
-    padding: 80px 20px;
-    background: var(--light);
-}
-
-.problems h2,
-.solution h2,
-.features h2,
-.why-lifecare h2,
-.about h2,
-.contact h2 {
-    text-align: center;
-    font-size: 2.5rem;
-    margin-bottom: 10px;
-    color: var(--dark);
-}
-
-.section-subtitle {
-    text-align: center;
-    color: #666;
-    margin-bottom: 50px;
-    font-size: 1.1rem;
-}
-
-.problems-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 30px;
-}
-
-.problem-card {
-    background: var(--white);
-    padding: 30px;
-    border-radius: 15px;
-    text-align: center;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
-}
-
-.problem-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
-}
-
-.problem-icon {
-    font-size: 3rem;
-    margin-bottom: 15px;
-}
-
-.problem-card h3 {
-    color: var(--primary);
-    margin-bottom: 10px;
-    font-size: 1.3rem;
-}
-
-/* Solution Section */
-.solution {
-    padding: 80px 20px;
-    background: var(--white);
-}
-
-.solution-content {
-    text-align: center;
-    max-width: 600px;
-    margin: 0 auto;
-}
-
-.solution-text h3 {
-    color: var(--primary);
-    font-size: 1.5rem;
-    margin-top: 20px;
-    margin-bottom: 10px;
-}
-
-.solution-text p {
-    font-size: 1.1rem;
-    margin-bottom: 20px;
-    line-height: 1.8;
-}
-
-/* Features Section */
-.features {
-    padding: 80px 20px;
-    background: linear-gradient(135deg, rgba(255, 107, 157, 0.1) 0%, rgba(196, 69, 105, 0.1) 100%);
-}
-
-.features-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 30px;
-}
-
-.feature-card {
-    background: var(--white);
-    padding: 30px;
-    border-radius: 15px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
-}
-
-.feature-card:hover {
-    transform: translateY(-10px);
-    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-    color: var(--white);
-}
-
-.feature-icon {
-    font-size: 2.5rem;
-    margin-bottom: 15px;
-}
-
-.feature-card h3 {
-    color: var(--primary);
-    margin-bottom: 10px;
-    font-size: 1.3rem;
-}
-
-.feature-card:hover h3 {
-    color: var(--white);
-}
-
-/* Why LifeCare Section */
-.why-lifecare {
-    padding: 80px 20px;
-    background: var(--light);
-}
-
-.why-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 30px;
-}
-
-.why-card {
-    background: var(--white);
-    padding: 30px;
-    border-radius: 15px;
-    text-align: center;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    border-left: 5px solid var(--primary);
-}
-
-.why-card:hover {
-    transform: translateY(-10px);
-}
-
-.why-card h3 {
-    color: var(--primary);
-    margin-bottom: 10px;
-    font-size: 1.2rem;
-}
-
-/* About Section */
-.about {
-    padding: 80px 20px;
-    background: var(--white);
-}
-
-.about-content {
-    max-width: 700px;
-    margin: 0 auto;
-}
-
-.about-content h3 {
-    color: var(--primary);
-    font-size: 1.5rem;
-    margin-top: 30px;
-    margin-bottom: 15px;
-}
-
-.about-content p {
-    font-size: 1.05rem;
-    line-height: 1.8;
-    margin-bottom: 20px;
-}
-
-/* Contact Section */
-.contact {
-    padding: 80px 20px;
-    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-    color: var(--white);
-}
-
-.contact h2,
-.contact .section-subtitle {
-    color: var(--white);
-}
-
-.contact-info {
-    text-align: center;
-    background: rgba(255, 255, 255, 0.1);
-    padding: 40px;
-    border-radius: 15px;
-    backdrop-filter: blur(10px);
-}
-
-.contact-info h3 {
-    margin-bottom: 20px;
-    font-size: 1.3rem;
-}
-
-.contact-info p {
-    margin-bottom: 10px;
-    font-size: 1.05rem;
-}
-
-/* Footer */
-.footer {
-    background: var(--dark);
-    color: var(--white);
-    padding: 30px 20px;
-    text-align: center;
-}
-
-.footer .container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 20px;
-}
-
-.social-links {
-    display: flex;
-    gap: 20px;
-}
-
-.social-links a {
-    color: var(--white);
-    text-decoration: none;
-}
-
-/* ===== DASHBOARD ===== */
-.dashboard {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-    background: var(--light);
-}
-
-.dashboard.hidden {
-    display: none;
-}
-
-.dashboard-navbar {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-    padding: 1rem 0;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.dashboard-nav-container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 0 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.dashboard-menu {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-.dashboard-btn {
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    border: 2px solid transparent;
-    padding: 8px 15px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-
-.dashboard-btn:hover {
-    background: rgba(255, 255, 255, 0.3);
-    border-color: white;
-}
-
-.logout-btn {
-    background: var(--accent);
-    color: white;
-    border: none;
-    padding: 8px 20px;
-    border-radius: 20px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: all 0.3s ease;
-}
-
-.logout-btn:hover {
-    transform: scale(1.05);
-}
-
-.dashboard-content {
-    flex: 1;
-    max-width: 1400px;
-    margin: 0 auto;
-    width: 100%;
-    padding: 30px 20px;
-}
-
-.dashboard-section {
-    display: none;
-    animation: fadeIn 0.3s ease;
-}
-
-.dashboard-section.active {
-    display: block;
-}
-
-.dashboard-section h2 {
-    color: var(--primary);
-    margin-bottom: 30px;
-    font-size: 2rem;
-}
-
-/* Health Container */
-.health-container,
-.tasks-container,
-.expenses-container,
-.duty-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 30px;
-}
-
-.health-form,
-.task-form,
-.expense-form,
-.duty-form {
-    background: white;
-    padding: 25px;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.health-form h3,
-.task-form h3,
-.expense-form h3,
-.duty-form h3 {
-    color: var(--primary);
-    margin-bottom: 20px;
-    font-size: 1.3rem;
-}
-
-.health-list,
-.task-list,
-.expense-list,
-.duty-list {
-    background: white;
-    padding: 25px;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    max-height: 600px;
-    overflow-y: auto;
-}
-
-.empty-msg {
-    text-align: center;
-    color: #999;
-    padding: 40px 20px;
-}
-
-/* Item Cards */
-.item-card {
-    background: linear-gradient(135deg, rgba(255, 107, 157, 0.1) 0%, rgba(196, 69, 105, 0.1) 100%);
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 15px;
-    border-left: 4px solid var(--primary);
-}
-
-.item-card h4 {
-    color: var(--primary);
-    margin-bottom: 8px;
-}
-
-.item-card p {
-    font-size: 0.95rem;
-    margin-bottom: 5px;
-}
-
-.item-actions {
-    margin-top: 10px;
-    display: flex;
-    gap: 10px;
-}
-
-.delete-btn {
-    background: var(--error);
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: all 0.3s ease;
-}
-
-.delete-btn:hover {
-    opacity: 0.8;
-}
-
-/* Expenses Stats */
-.expense-stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    margin-bottom: 30px;
-}
-
-.stat-card {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-    color: white;
-    padding: 20px;
-    border-radius: 12px;
-    text-align: center;
-}
-
-.stat-card p {
-    opacity: 0.9;
-    margin-bottom: 10px;
-}
-
-.stat-card h3 {
-    font-size: 1.8rem;
-}
-
-.stat-card input {
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
-    border: 2px solid white;
-    padding: 8px 12px;
-    border-radius: 5px;
-    width: 100%;
-    font-size: 1.2rem;
-    text-align: center;
-}
-
-.stat-card input::placeholder {
-    color: rgba(255, 255, 255, 0.5);
-}
-
-/* Profile Container */
-.profile-container {
-    background: white;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    max-width: 600px;
-}
-
-.profile-card h3 {
-    color: var(--primary);
-    margin-bottom: 20px;
-    font-size: 1.5rem;
-}
-
-.profile-card p {
-    margin-bottom: 15px;
-}
-
-.profile-card h4 {
-    color: var(--primary);
-    margin-top: 25px;
-    margin-bottom: 15px;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .health-container,
-    .tasks-container,
-    .expenses-container,
-    .duty-container {
-        grid-template-columns: 1fr;
+    
+    // Load all data
+    loadAllData();
+}
+
+function showLandingPage() {
+    document.getElementById('dashboard').classList.add('hidden');
+    document.getElementById('landingPage').classList.remove('hidden');
+}
+
+function logout() {
+    currentUser = null;
+    localStorage.removeItem('currentUser');
+    showLandingPage();
+    showNotification('Logged Out', 'You have been logged out', 'info');
+}
+
+// ===== DASHBOARD SECTIONS =====
+function showSection(sectionId) {
+    // Hide all sections
+    document.querySelectorAll('.dashboard-section').forEach(section => {
+        section.classList.remove('active');
+    });
+    
+    // Show selected section
+    document.getElementById(sectionId).classList.add('active');
+}
+
+// ===== HEALTH MANAGEMENT =====
+function addHealth() {
+    const symptom = document.getElementById('symptom').value;
+    const medication = document.getElementById('medication').value;
+    const notes = document.getElementById('notes').value;
+    
+    if (!symptom && !medication && !notes) {
+        showNotification('Error', 'Please fill at least one field', 'error');
+        return;
     }
+    
+    const email = currentUser.email;
+    const health = {
+        id: Date.now(),
+        symptom: symptom,
+        medication: medication,
+        notes: notes,
+        date: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString()
+    };
+    
+    if (!userActivities[email]) userActivities[email] = { health: [], tasks: [], expenses: [], duty: [] };
+    userActivities[email].health.push(health);
+    localStorage.setItem('lifecareActivities', JSON.stringify(userActivities));
+    
+    showNotification('Success', 'Health record added!', 'success');
+    
+    // Clear fields
+    document.getElementById('symptom').value = '';
+    document.getElementById('medication').value = '';
+    document.getElementById('notes').value = '';
+    
+    // Reload
+    loadHealthData();
+}
 
-    .hero {
-        grid-template-columns: 1fr;
-        padding: 60px 20px;
-        text-align: center;
+function loadHealthData() {
+    const email = currentUser.email;
+    const healthList = document.getElementById('healthList');
+    const records = userActivities[email]?.health || [];
+    
+    if (records.length === 0) {
+        healthList.innerHTML = '<p class="empty-msg">No health records yet. Start tracking!</p>';
+        return;
     }
+    
+    healthList.innerHTML = records.map(record => `
+        <div class="item-card">
+            <h4>${record.symptom || 'No symptom'}</h4>
+            <p><strong>Medication:</strong> ${record.medication || 'None'}</p>
+            <p><strong>Notes:</strong> ${record.notes || 'None'}</p>
+            <p><small>${record.date}</small></p>
+            <div class="item-actions">
+                <button class="delete-btn" onclick="deleteHealthRecord(${record.id})">Delete</button>
+            </div>
+        </div>
+    `).join('');
+}
 
-    .hero-content h1 {
-        font-size: 2.2rem;
+function deleteHealthRecord(id) {
+    const email = currentUser.email;
+    userActivities[email].health = userActivities[email].health.filter(r => r.id !== id);
+    localStorage.setItem('lifecareActivities', JSON.stringify(userActivities));
+    loadHealthData();
+    showNotification('Deleted', 'Record removed', 'info');
+}
+
+// ===== TASK MANAGEMENT =====
+function addTask() {
+    const name = document.getElementById('taskName').value;
+    const priority = document.getElementById('taskPriority').value;
+    const date = document.getElementById('taskDate').value;
+    
+    if (!name) {
+        showNotification('Error', 'Please enter task name', 'error');
+        return;
     }
+    
+    const email = currentUser.email;
+    const task = {
+        id: Date.now(),
+        name: name,
+        priority: priority,
+        date: date,
+        completed: false,
+        createdAt: new Date().toLocaleDateString()
+    };
+    
+    if (!userActivities[email]) userActivities[email] = { health: [], tasks: [], expenses: [], duty: [] };
+    userActivities[email].tasks.push(task);
+    localStorage.setItem('lifecareActivities', JSON.stringify(userActivities));
+    
+    showNotification('Success', 'Task added!', 'success');
+    
+    document.getElementById('taskName').value = '';
+    document.getElementById('taskDate').value = '';
+    
+    loadTaskData();
+}
 
-    .phone-mockup {
-        display: none;
+function loadTaskData() {
+    const email = currentUser.email;
+    const taskList = document.getElementById('taskList');
+    const tasks = userActivities[email]?.tasks || [];
+    
+    if (tasks.length === 0) {
+        taskList.innerHTML = '<p class="empty-msg">No tasks yet. Create one!</p>';
+        return;
     }
+    
+    taskList.innerHTML = tasks.map(task => `
+        <div class="item-card">
+            <h4>${task.name}</h4>
+            <p><strong>Priority:</strong> <span style="color: ${task.priority === 'high' ? '#f44336' : task.priority === 'medium' ? '#ff9800' : '#4CAF50'}">${task.priority.toUpperCase()}</span></p>
+            <p><strong>Due:</strong> ${task.date || 'No date'}</p>
+            <div class="item-actions">
+                <button class="delete-btn" onclick="deleteTask(${task.id})">Delete</button>
+            </div>
+        </div>
+    `).join('');
+}
 
-    .dashboard-menu {
-        gap: 0.5rem;
+function deleteTask(id) {
+    const email = currentUser.email;
+    userActivities[email].tasks = userActivities[email].tasks.filter(t => t.id !== id);
+    localStorage.setItem('lifecareActivities', JSON.stringify(userActivities));
+    loadTaskData();
+    showNotification('Deleted', 'Task removed', 'info');
+}
+
+// ===== EXPENSE TRACKING =====
+function addExpense() {
+    const name = document.getElementById('expenseName').value;
+    const amount = parseFloat(document.getElementById('expenseAmount').value);
+    const category = document.getElementById('expenseCategory').value;
+    
+    if (!name || !amount || amount <= 0) {
+        showNotification('Error', 'Please fill all fields correctly', 'error');
+        return;
     }
+    
+    const email = currentUser.email;
+    const expense = {
+        id: Date.now(),
+        name: name,
+        amount: amount,
+        category: category,
+        date: new Date().toLocaleDateString()
+    };
+    
+    if (!userActivities[email]) userActivities[email] = { health: [], tasks: [], expenses: [], duty: [] };
+    userActivities[email].expenses.push(expense);
+    localStorage.setItem('lifecareActivities', JSON.stringify(userActivities));
+    
+    showNotification('Success', `₱${amount.toFixed(2)} added!`, 'success');
+    
+    document.getElementById('expenseName').value = '';
+    document.getElementById('expenseAmount').value = '';
+    
+    loadExpenseData();
+}
 
-    .dashboard-btn {
-        padding: 6px 12px;
-        font-size: 0.9rem;
+function loadExpenseData() {
+    const email = currentUser.email;
+    const expenseList = document.getElementById('expenseList');
+    const expenses = userActivities[email]?.expenses || [];
+    
+    if (expenses.length === 0) {
+        expenseList.innerHTML = '<p class="empty-msg">No expenses yet.</p>';
+    } else {
+        expenseList.innerHTML = expenses.map(expense => `
+            <div class="item-card">
+                <h4>${expense.name}</h4>
+                <p><strong>Amount:</strong> ₱${expense.amount.toFixed(2)}</p>
+                <p><strong>Category:</strong> ${expense.category}</p>
+                <p><small>${expense.date}</small></p>
+                <div class="item-actions">
+                    <button class="delete-btn" onclick="deleteExpense(${expense.id})">Delete</button>
+                </div>
+            </div>
+        `).join('');
     }
-
-    .notification {
-        min-width: 250px;
-        font-size: 0.9rem;
-    }
-
-    .modal-content {
-        width: 95%;
+    
+    // Update stats
+    const total = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+    document.getElementById('totalSpent').textContent = total.toFixed(2);
+    
+    // Check budget
+    const budget = parseFloat(document.getElementById('budgetLimit').value) || 0;
+    if (budget > 0 && total > budget) {
+        showNotification('Budget Alert!', `You\'ve exceeded your budget by ₱${(total - budget).toFixed(2)}`, 'warning');
     }
 }
 
-@keyframes slideInLeft {
-    from {
-        opacity: 0;
-        transform: translateX(-50px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
+function deleteExpense(id) {
+    const email = currentUser.email;
+    userActivities[email].expenses = userActivities[email].expenses.filter(e => e.id !== id);
+    localStorage.setItem('lifecareActivities', JSON.stringify(userActivities));
+    loadExpenseData();
+    showNotification('Deleted', 'Expense removed', 'info');
+}
+
+function updateBudget() {
+    const budget = parseFloat(document.getElementById('budgetLimit').value) || 0;
+    const email = currentUser.email;
+    const total = (userActivities[email]?.expenses || []).reduce((sum, exp) => sum + exp.amount, 0);
+    
+    if (budget > 0 && total > budget) {
+        showNotification('Budget Exceeded!', `Current: ₱${total.toFixed(2)} | Budget: ₱${budget.toFixed(2)}`, 'warning');
+    } else if (budget > 0) {
+        showNotification('Budget Updated', `You have ₱${(budget - total).toFixed(2)} left`, 'success');
     }
 }
+
+// ===== DUTY PREPARATION =====
+function addDutyPrep() {
+    const area = document.getElementById('dutyArea').value;
+    const checklist = document.getElementById('dutyChecklist').value;
+    const notes = document.getElementById('confidenceNotes').value;
+    
+    if (!area) {
+        showNotification('Error', 'Please enter duty area', 'error');
+        return;
+    }
+    
+    const email = currentUser.email;
+    const duty = {
+        id: Date.now(),
+        area: area,
+        checklist: checklist.split(',').filter(item => item.trim()),
+        notes: notes,
+        date: new Date().toLocaleDateString()
+    };
+    
+    if (!userActivities[email]) userActivities[email] = { health: [], tasks: [], expenses: [], duty: [] };
+    userActivities[email].duty.push(duty);
+    localStorage.setItem('lifecareActivities', JSON.stringify(userActivities));
+    
+    showNotification('Success', `Duty prep for ${area} saved!`, 'success');
+    
+    document.getElementById('dutyArea').value = '';
+    document.getElementById('dutyChecklist').value = '';
+    document.getElementById('confidenceNotes').value = '';
+    
+    loadDutyData();
+}
+
+function loadDutyData() {
+    const email = currentUser.email;
+    const dutyList = document.getElementById('dutyList');
+    const duties = userActivities[email]?.duty || [];
+    
+    if (duties.length === 0) {
+        dutyList.innerHTML = '<p class="empty-msg">No duty preparations yet.</p>';
+        return;
+    }
+    
+    dutyList.innerHTML = duties.map(duty => `
+        <div class="item-card">
+            <h4>📍 ${duty.area}</h4>
+            <p><strong>Items to Bring:</strong></p>
+            <ul>
+                ${duty.checklist.map(item => `<li>✓ ${item.trim()}</li>`).join('')}
+            </ul>
+            <p><strong>Tips:</strong> ${duty.notes || 'No notes'}</p>
+            <p><small>${duty.date}</small></p>
+            <div class="item-actions">
+                <button class="delete-btn" onclick="deleteDuty(${duty.id})">Delete</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function deleteDuty(id) {
+    const email = currentUser.email;
+    userActivities[email].duty = userActivities[email].duty.filter(d => d.id !== id);
+    localStorage.setItem('lifecareActivities', JSON.stringify(userActivities));
+    loadDutyData();
+    showNotification('Deleted', 'Duty prep removed', 'info');
+}
+
+// ===== PROFILE =====
+function updateProfileDisplay() {
+    document.getElementById('profileName').textContent = currentUser.name;
+    document.getElementById('profileEmail').textContent = currentUser.email;
+    document.getElementById('profileRole').textContent = currentUser.role.replace('-', ' ').toUpperCase();
+    document.getElementById('profileDate').textContent = currentUser.joinDate;
+    document.getElementById('allergies').value = currentUser.allergies || '';
+    document.getElementById('medications').value = currentUser.medications || '';
+}
+
+function updateProfile() {
+    const allergies = document.getElementById('allergies').value;
+    const medications = document.getElementById('medications').value;
+    
+    currentUser.allergies = allergies;
+    currentUser.medications = medications;
+    
+    users[currentUser.email] = currentUser;
+    localStorage.setItem('lifecareUsers', JSON.stringify(users));
+    localStorage.setItem('currentUser', JSON.stringify(currentUser));
+    
+    showNotification('Success', 'Profile updated!', 'success');
+}
+
+// ===== LOAD ALL DATA =====
+function loadAllData() {
+    loadHealthData();
+    loadTaskData();
+    loadExpenseData();
+    loadDutyData();
+}
+
+// ===== INITIALIZATION =====
+window.addEventListener('load', () => {
+    // Check if user is logged in
+    const saved = localStorage.getItem('currentUser');
+    if (saved) {
+        currentUser = JSON.parse(saved);
+        showDashboard();
+    }
+});
+
+// Close modal when clicking outside
+window.addEventListener('click', (event) => {
+    const modal = document.getElementById('loginModal');
+    if (event.target === modal) {
+        closeModal('loginModal');
+    }
+});
